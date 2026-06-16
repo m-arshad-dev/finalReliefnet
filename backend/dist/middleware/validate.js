@@ -19,6 +19,7 @@ export function validate(schema) {
         }
         catch (err) {
             if (err instanceof ZodError) {
+                console.error('[VALIDATION ERROR]', JSON.stringify(err.errors, null, 2));
                 res.status(400).json({
                     error: 'Validation failed',
                     details: err.errors.map((e) => ({

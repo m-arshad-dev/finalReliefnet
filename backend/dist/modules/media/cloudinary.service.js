@@ -32,7 +32,8 @@ export class CloudinaryService {
             const filename = `${randomUUID()}.jpg`;
             const filePath = path.join(UPLOADS_DIR, filename);
             await writeFile(filePath, fileBuffer);
-            const url = `http://localhost:${env.PORT}/api/media/files/${filename}`;
+            const base = process.env.BASE_URL ?? `http://localhost:${env.PORT}`;
+            const url = `${base}/api/media/files/${filename}`;
             logger.info('[MEDIA] Saved file locally (Cloudinary not configured)', { url });
             return url;
         }

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 export declare const createTaskSchema: z.ZodObject<{
-    campaign_id: z.ZodOptional<z.ZodNumber>;
-    beneficiary_id: z.ZodOptional<z.ZodNumber>;
+    campaign_id: z.ZodOptional<z.ZodNullable<z.ZodNumber>>;
+    beneficiary_id: z.ZodOptional<z.ZodNullable<z.ZodNumber>>;
     source_type: z.ZodEnum<["BENEFICIARY_REQUEST", "NGO_CAMPAIGN", "PLATFORM_CAMPAIGN", "ADMIN_CREATED"]>;
     title: z.ZodString;
     description: z.ZodOptional<z.ZodString>;
@@ -25,8 +25,8 @@ export declare const createTaskSchema: z.ZodObject<{
     budget_pkr: number;
     urgency: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
     description?: string | undefined;
-    campaign_id?: number | undefined;
-    beneficiary_id?: number | undefined;
+    campaign_id?: number | null | undefined;
+    beneficiary_id?: number | null | undefined;
     category?: string | undefined;
     location_text?: string | undefined;
 }, {
@@ -35,8 +35,8 @@ export declare const createTaskSchema: z.ZodObject<{
     latitude: number;
     longitude: number;
     description?: string | undefined;
-    campaign_id?: number | undefined;
-    beneficiary_id?: number | undefined;
+    campaign_id?: number | null | undefined;
+    beneficiary_id?: number | null | undefined;
     category?: string | undefined;
     family_size?: number | undefined;
     items_needed?: any[] | undefined;

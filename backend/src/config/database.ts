@@ -1,22 +1,29 @@
 import { Pool, PoolConfig } from 'pg';
 import { env } from './env.js';
 
-const poolConfig: PoolConfig = {
-  host: env.POSTGRES_HOST,
-  port: env.POSTGRES_PORT,
-  database: env.POSTGRES_DB,
-  user: env.POSTGRES_USER,
-  password: env.POSTGRES_PASSWORD,
+const sharedConfig: PoolConfig = {
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 5000,
   statement_timeout: 30000,
-  ssl: {
-    rejectUnauthorized: false,   // ✅ Required for Supabase
-  },
+  ssl: { rejectUnauthorized: false },
 };
 
-console.log('[DB] Config:', { ...poolConfig, password: '***' });
+const poolConfig: PoolConfig = env.DATABASE_URL
+  ? { ...sharedConfig, connectionString: env.DATABASE_URL }
+  : {
+      ...sharedConfig,
+      host: env.POSTGRES_HOST,
+      port: env.POSTGRES_PORT,
+      database: env.POSTGRES_DB,
+      user: env.POSTGRES_USER,
+      password: env.POSTGRES_PASSWORD,
+    };
+
+console.log('[DB] Config:', env.DATABASE_URL
+  ? { connectionString: env.DATABASE_URL.replace(/:\/\/[^@]+@/, '://***@') }
+  : { host: env.POSTGRES_HOST, port: env.POSTGRES_PORT, database: env.POSTGRES_DB, user: env.POSTGRES_USER, password: '***' }
+);
 
 export const pool = new Pool(poolConfig);
 

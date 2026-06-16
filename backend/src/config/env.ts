@@ -10,12 +10,13 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().default(3000),
 
-  // Database
+  // Database — either DATABASE_URL (Railway/Supabase) or individual vars
+  DATABASE_URL: z.string().url().optional(),
   POSTGRES_HOST: z.string().default('localhost'),
   POSTGRES_PORT: z.coerce.number().default(5432),
   POSTGRES_DB: z.string().default('disasteraid'),
   POSTGRES_USER: z.string().default('disasteraid_user'),
-  POSTGRES_PASSWORD: z.string().min(1, 'POSTGRES_PASSWORD is required'),
+  POSTGRES_PASSWORD: z.string().default(''),
 
   // JWT
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
@@ -47,7 +48,12 @@ const envSchema = z.object({
   SOCKET_CORS_ORIGIN: z.string().default('http://localhost:8080'),
 });
 
-const parsed = envSchema.safeParse(process.env);
+const parsed = envSchema
+  .refine(
+    d => d.DATABASE_URL !== undefined || d.POSTGRES_PASSWORD !== '',
+    { message: 'Either DATABASE_URL or POSTGRES_PASSWORD must be set' }
+  )
+  .safeParse(process.env);
 
 if (!parsed.success) {
   console.error('❌ Invalid environment variables:');

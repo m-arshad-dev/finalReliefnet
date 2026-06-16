@@ -19,5 +19,6 @@ export declare const env: {
     STRIPE_SECRET_KEY: string;
     STRIPE_WEBHOOK_SECRET: string;
     SOCKET_CORS_ORIGIN: string;
+    DATABASE_URL?: string | undefined;
 };
 //# sourceMappingURL=env.d.ts.map

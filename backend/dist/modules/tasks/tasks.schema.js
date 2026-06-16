@@ -1,7 +1,7 @@
 import { z } from 'zod';
 export const createTaskSchema = z.object({
-    campaign_id: z.number().int().positive().optional(),
-    beneficiary_id: z.number().int().positive().optional(),
+    campaign_id: z.number().int().positive().nullish(),
+    beneficiary_id: z.number().int().positive().nullish(),
     source_type: z.enum(['BENEFICIARY_REQUEST', 'NGO_CAMPAIGN', 'PLATFORM_CAMPAIGN', 'ADMIN_CREATED']),
     title: z.string().min(1).max(500),
     description: z.string().optional(),

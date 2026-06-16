@@ -17,8 +17,8 @@ export class DeliveriesService {
             if (task.claimed_by !== volunteerId) {
                 throw createError('You are not assigned to this task', 403);
             }
-            if (task.status !== 'IN_PROGRESS' && task.status !== 'PARTIALLY_COMPLETED') {
-                throw createError(`Cannot submit delivery: task must be IN_PROGRESS or PARTIALLY_COMPLETED (current: ${task.status})`, 400);
+            if (task.status !== 'IN_PROGRESS' && task.status !== 'SUBMITTED') {
+                throw createError(`Cannot submit delivery: task must be IN_PROGRESS or SUBMITTED (current: ${task.status})`, 400);
             }
             // Create delivery record
             const deliveryResult = await client.query(`INSERT INTO deliveries (task_id, volunteer_id, storage_keys, gps_location, notes, quantity_delivered, status)
@@ -32,9 +32,7 @@ export class DeliveriesService {
                 input.notes || null,
                 input.quantity_delivered,
             ]);
-            // Logic to update task status based on total delivered vs needed
-            // (This could be complex, keeping it simple for now)
-            await client.query(`UPDATE tasks SET status = 'PARTIALLY_COMPLETED' WHERE id = $1`, [input.task_id]);
+            await client.query(`UPDATE tasks SET status = 'SUBMITTED' WHERE id = $1`, [input.task_id]);
             // Record event
             await client.query(`INSERT INTO task_events (task_id, user_id, event_type, metadata)
          VALUES ($1, $2, 'SUBMITTED', $3)`, [input.task_id, volunteerId, JSON.stringify({ delivery_id: deliveryResult.rows[0].id })]);
@@ -76,7 +74,7 @@ export class DeliveriesService {
             const verifierResult = await client.query('SELECT r.name FROM roles r JOIN users u ON u.role_id = r.id WHERE u.id = $1', [verifiedBy]);
             const verifierRole = verifierResult.rows[0]?.name;
             if (verifierRole === 'COORDINATOR') {
-                const jurisdictionCheck = await client.query(`SELECT 1 FROM tasks WHERE id = $1 AND coordinator_id = $2`, [delivery.task_id, verifiedBy]);
+                const jurisdictionCheck = await client.query(`SELECT 1 FROM tasks WHERE id = $1 AND (coordinator_id = $2 OR coordinator_id IS NULL)`, [delivery.task_id, verifiedBy]);
                 if (jurisdictionCheck.rows.length === 0) {
                     throw createError('Jurisdiction error: You cannot verify this delivery', 403);
                 }

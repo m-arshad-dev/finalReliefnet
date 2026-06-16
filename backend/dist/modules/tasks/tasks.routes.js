@@ -15,7 +15,7 @@ router.get('/available', authenticate, (req, res, next) => tasksController.getAv
  * GET /api/tasks/my
  * Returns ALL tasks created by the authenticated beneficiary (all statuses).
  */
-router.get('/my', authenticate, authorize('BENEFICIARY', 'ADMIN', 'NGO'), (req, res, next) => tasksController.getMyTasks(req, res, next));
+router.get('/my', authenticate, authorize('BENEFICIARY', 'ADMIN', 'NGO', 'DONOR', 'VOLUNTEER', 'COORDINATOR'), (req, res, next) => tasksController.getMyTasks(req, res, next));
 /**
  * GET /api/tasks/coordinator
  * Returns tasks assigned to the authenticated coordinator.

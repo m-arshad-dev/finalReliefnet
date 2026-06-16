@@ -128,6 +128,7 @@ export class TasksService {
        LEFT JOIN campaigns c ON c.id = t.campaign_id
        LEFT JOIN ngo_profiles np ON np.id = c.ngo_id
        WHERE t.coordinator_id = $1
+          OR (t.status = 'SUBMITTED' AND t.coordinator_id IS NULL)
        ORDER BY
          CASE t.urgency
            WHEN 'CRITICAL' THEN 1

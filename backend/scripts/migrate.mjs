@@ -8,17 +8,37 @@ import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+// Load .env for local dev (no-op in Railway where vars are injected)
+try {
+  const { default: dotenv } = await import('dotenv');
+  dotenv.config({ path: new URL('../.env', import.meta.url).pathname });
+} catch { /* dotenv is a devDependency — may not be present in production image */ }
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const MIGRATIONS_DIR = path.resolve(__dirname, '../migrations');
 
-const pool = new pg.Pool({
-  host: process.env.POSTGRES_HOST || process.env.PGHOST || 'localhost',
-  port: Number(process.env.POSTGRES_PORT || process.env.PGPORT || 5432),
-  database: process.env.POSTGRES_DB || process.env.PGDATABASE || 'disasteraid',
-  user: process.env.POSTGRES_USER || process.env.PGUSER || 'disasteraid_user',
-  password: process.env.POSTGRES_PASSWORD || process.env.PGPASSWORD,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-});
+const DATABASE_URL = process.env.DATABASE_URL;
+const ssl = process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false;
+
+if (DATABASE_URL) {
+  // Mask password for logging
+  const masked = DATABASE_URL.replace(/:\/\/([^:]+):([^@]+)@/, '://$1:***@');
+  console.log('[migrate] Using DATABASE_URL:', masked);
+} else {
+  console.log('[migrate] DATABASE_URL not set — using individual POSTGRES_* vars');
+  console.log('[migrate] POSTGRES_HOST:', process.env.POSTGRES_HOST ?? '(not set, default: localhost)');
+}
+
+const pool = DATABASE_URL
+  ? new pg.Pool({ connectionString: DATABASE_URL, ssl })
+  : new pg.Pool({
+      host: process.env.POSTGRES_HOST || 'localhost',
+      port: Number(process.env.POSTGRES_PORT || 5432),
+      database: process.env.POSTGRES_DB || 'disasteraid',
+      user: process.env.POSTGRES_USER || 'disasteraid_user',
+      password: process.env.POSTGRES_PASSWORD,
+      ssl,
+    });
 
 async function run() {
   const client = await pool.connect();
